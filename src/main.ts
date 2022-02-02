@@ -1,144 +1,83 @@
-import { DynamicTexture, Engine, MultiMaterial, StandardMaterial } from '@babylonjs/core';
-import { World, Block, ColorMap, BlockRenderContext } from './models';
+import { Engine } from 'noa-engine';
+import loadBlocks from './components/Blocks';
+import loadWorld from './components/World';
+import loadSound from './components/Sound';
+import loadSteve from './components/Steve';
+import loadSightPlane from './components/SightPlane';
+import loadAnimals from './components/Animals';
 
 import './style.css';
 
-const options = {
-    showFPS: false,
-    antiAlias: true,
-    clearColor: [0.588, 0.835, 1],
-    ambientColor: [1, 1, 1],
-    lightDiffuse: [1, 1, 1],
-    lightSpecular: [1, 1, 1],
-    groundLightColor: [0.5, 0.5, 0.5],
-    initialCameraZoom: 0,
-    cameraZoomSpeed: 0.2,
-    cameraMaxAngle: Math.PI / 2 - 0.01,
-    useAO: true,
-    AOmultipliers: [0.93, 0.8, 0.5],
-    reverseAOmultiplier: 1
-};
+function main() {
+    const size = 32;
+    const center = size * 0.5;
 
-function main(canvas: HTMLCanvasElement) {
-    const engine = new Engine(canvas, options.antiAlias, { stencil: true }, true);
-    const world = new World(engine);
+    const worldSize = 256;
+    const worldHeight = 64;
 
-    world.registerBlocks({
-        dirt: {
-            materials: ['dirt', 'dirt', 'dirt'],
-            render: (block: Block) => {
-                const material = block.mesh.material! as MultiMaterial;
-                const growGrass = () => {
-                    if (block.hasBlockOnTop()) {
-                        block.mesh.material = material;
-                    } else {
-                        block.mesh.material = Block.getDefinition('grass').material;
-                    }
-                    setTimeout(() => growGrass(), 1000);
-                };
-                growGrass();
-            },
-            sounds: ['grass1', 'grass2', 'grass3', 'grass4']
-        },
-        grass: {
-            materials: ['dirt', 'dirt', 'dirt'],
-            dynamicTextures: async (textures: DynamicTexture[]) => {
-                const [dirt, grassTop, grassSide, colorPick]: [
-                    HTMLImageElement,
-                    HTMLImageElement,
-                    HTMLImageElement,
-                    Function
-                ] = await Promise.all([
-                    Block.loadImage('dirt'),
-                    Block.loadImage('grass_block_top'),
-                    Block.loadImage('grass_block_side_overlay'),
-                    ColorMap.load('grass')
-                ]);
+    const engine = new Engine({
+        chunkSize: 32,
+        chunkAddDistance: 7,
+        chunkRemoveDistance: 8,
+        blockTestDistance: 6,
+        playerStart: [center + 0.5, 48, center + 0.5],
+        playerHeight: 1.8,
+        texturePath: 'assets/textures2/',
+        stickyPointerLock: true,
+        renderOnResize: true,
+        gravity: [0, -9.8 * 1.8, 0]
+        // lightDiffuse: [1, 1, 1],
+        // lightSpecular: [1, 1, 1],
+        // groundLightColor: [0.5, 0.5, 0.5],
+        // initialZoom: 10
+    });
 
-                const [grassTopTexture, _, grassSideTexture] = textures;
+    engine.setPaused(true);
+    const blocks = loadBlocks(engine);
 
-                let x = 0,
-                    y = 0;
-                const drawGrass = () => {
-                    const grassColor = colorPick(x, y);
-                    {
-                        const ctx = grassTopTexture.getContext();
-                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                        ctx.drawImage(grassTop, 0, 0);
-                        ctx.globalCompositeOperation = 'multiply';
-                        ctx.fillStyle = grassColor;
-                        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                        grassTopTexture.update();
-                    }
-                    {
-                        const ctx = grassSideTexture.getContext();
-                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                        ctx.drawImage(grassSide, 0, 0);
-                        ctx.globalCompositeOperation = 'multiply';
-                        ctx.fillStyle = grassColor;
-                        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                        ctx.globalCompositeOperation = 'destination-atop';
-                        ctx.drawImage(grassSide, 0, 0);
-                        ctx.globalCompositeOperation = 'destination-over';
-                        ctx.drawImage(dirt, 0, 0);
-                        grassSideTexture.update();
-                    }
+    loadWorld(engine, {
+        size: worldSize,
+        height: worldHeight,
+        seed: 80556954620176,
+        blockIds: {
+            bedrock: blocks.id('bedrock'),
+            water: blocks.id('water')
+        }
+    });
+    const sound = loadSound(engine);
 
-                    setTimeout(() => {
-                        x += Math.floor(Math.random() * 2);
-                        y += Math.floor(Math.random() * 2);
-                        if (x < 0) x = 0;
-                        if (y < 0) y = 0;
-                        if (x > 255) x = 255;
-                        if (y > 255) y = 255;
-                        drawGrass();
-                    }, 1000);
-                };
+    loadSightPlane(engine);
+    loadSteve(engine);
+    loadAnimals(engine);
 
-                drawGrass();
-            }
-        },
-        stone: {
-            materials: ['stone']
-        },
-        obsidian: {
-            materials: ['obsidian']
-        },
-        tnt: {
-            materials: ['tnt_top', 'tnt_bottom', 'tnt_side']
-        },
-        oak: {
-            materials: ['oak_log_top', 'oak_log_top', 'oak_log']
+    const { inputs } = engine;
+    // clear targeted block on on left click
+    inputs.down.on('fire', () => {
+        if (engine.targetedBlock) {
+            const { position: pos, blockID } = engine.targetedBlock;
+            engine.setBlock(0, pos[0], pos[1], pos[2]);
+            sound.blockPlay(blockID);
         }
     });
 
-    for (let y = -10; y < 10; y++) {
-        for (let x = -10; x < 10; x++) {
-            world.putBlock('dirt', [x, y, 0]);
+    inputs.down.on('alt-fire', () => {
+        if (engine.targetedBlock) {
+            const { adjacent: pos } = engine.targetedBlock;
+            engine.setBlock(blocks.id('grass'), pos[0], pos[1], pos[2]);
         }
-    }
+    });
 
-    for (let y = -10; y < 10; y++) {
-        for (let x = -10; x < 10; x++) {
-            if (Math.floor(Math.random() * 3) == 1) {
-                world.putBlock('dirt', [x, y, 1]);
-            }
+    // each tick, consume any scroll events and use them to zoom camera
+    engine.on('tick', () => {
+        const { camera } = engine;
+        const scroll = inputs.state.scrolly;
+        if (scroll !== 0) {
+            camera.zoomDistance += scroll > 0 ? 1 : -1;
+            if (camera.zoomDistance < 0) camera.zoomDistance = 0;
+            if (camera.zoomDistance > 10) camera.zoomDistance = 10;
         }
-    }
-
-    for (let y = -10; y < 10; y++) {
-        for (let x = -10; x < 10; x++) {
-            if (world.hasBlock(x, y, 1)) {
-                if (Math.floor(Math.random() * 6) == 1) {
-                    world.putBlock('oak', [x, y, 2]);
-                    world.putBlock('oak', [x, y, 3]);
-                    world.putBlock('oak', [x, y, 4]);
-                }
-            }
-        }
-    }
-
-    world.start();
+    });
 }
 
-main(<HTMLCanvasElement>document.getElementById('world'));
+// main(<HTMLCanvasElement>document.getElementById('world'));
+main();

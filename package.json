@@ -7,14 +7,25 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@babel/generator": "^7.16.8",
+    "@babel/parser": "^7.16.12",
+    "@babel/traverse": "^7.16.10",
+    "@types/babel__generator": "^7.6.4",
+    "@types/babel__parser": "^7.1.1",
+    "@types/babel__traverse": "^7.14.2",
+    "@types/howler": "^2.2.4",
+    "@types/node-dir": "^0.0.34",
+    "node-dir": "^0.1.17",
     "typescript": "^4.4.4",
     "vite": "^2.7.2"
   },
   "dependencies": {
-    "@babylonjs/controls": "^2.0.0-alpha.1",
-    "@babylonjs/core": "^4.2.1",
-    "@babylonjs/loaders": "^4.2.1",
-    "@babylonjs/materials": "^4.2.1",
-    "nanoid": "^3.2.0"
+    "@babylonjs/controls": "^2.0.0-alpha.2",
+    "@babylonjs/core": "^5.0.0-beta.5",
+    "@babylonjs/loaders": "^5.0.0-beta.5",
+    "@babylonjs/materials": "^5.0.0-beta.5",
+    "howler": "^2.2.3",
+    "nanoid": "^3.2.0",
+    "noa-engine": "^0.32.0"
   }
 }

@@ -6,7 +6,7 @@
     "lib": ["ESNext", "DOM"],
     "moduleResolution": "Node",
     "strict": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "noEmit": true,
@@ -14,5 +14,5 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true
   },
-  "include": ["./src"]
+  "include": ["./src", "public/RandomLevelWorker.js"]
 }
