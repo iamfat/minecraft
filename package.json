@@ -1,5 +1,5 @@
 {
-  "name": "babylon-mc",
+  "name": "@iamfat/minecraft",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
