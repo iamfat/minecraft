@@ -1,4 +1,4 @@
-import { Engine } from 'noa-engine';
+import Engine from '../Engine';
 import { Texture, MeshBuilder, Constants, Vector3, Color3, Scene } from '@babylonjs/core';
 
 export default function (engine: Engine) {
@@ -6,6 +6,15 @@ export default function (engine: Engine) {
     const scene: Scene = rendering.getScene();
 
     scene.activeCamera!.fov = (80 * Math.PI) / 180;
+
+    const crossHairMat = rendering.makeStandardMaterial('crosshair');
+    crossHairMat.diffuseTexture = new Texture('assets/textures/gui/crosshair.png', scene);
+    crossHairMat.diffuseTexture.wrapU = Constants.TEXTURE_CLAMP_ADDRESSMODE;
+    crossHairMat.diffuseTexture.wrapV = Constants.TEXTURE_CLAMP_ADDRESSMODE;
+    crossHairMat.emissiveColor = new Color3(1, 1, 1);
+    crossHairMat.diffuseTexture.hasAlpha = true;
+    crossHairMat.useAlphaFromDiffuseTexture = true;
+    crossHairMat.freeze();
 
     const crossHair = MeshBuilder.CreatePlane(
         'crosshair',
@@ -15,14 +24,6 @@ export default function (engine: Engine) {
         },
         scene
     );
-
-    const crossHairMat = rendering.makeStandardMaterial('crosshairMat');
-    crossHairMat.diffuseTexture = new Texture('assets/textures2/block/crosshair.png', scene);
-    crossHairMat.diffuseTexture.wrapU = Constants.TEXTURE_CLAMP_ADDRESSMODE;
-    crossHairMat.diffuseTexture.wrapV = Constants.TEXTURE_CLAMP_ADDRESSMODE;
-    crossHairMat.emissiveColor = new Color3(1, 1, 1);
-    crossHairMat.diffuseTexture.hasAlpha = true;
-    crossHairMat.freeze();
     crossHair.position = new Vector3(0, 0, 0.8);
     crossHair.renderingGroupId = 2;
     crossHair.parent = scene.activeCamera;
@@ -42,4 +43,30 @@ export default function (engine: Engine) {
     scene.fogEnabled = true;
     scene.fogDensity = 0.01;
     scene.fogColor = new Color3(0.9, 0.95, 1);
+
+    const hotBarMat = rendering.makeStandardMaterial('hotbar');
+    hotBarMat.diffuseTexture = new Texture('assets/textures/gui/hotbar_bg.png', scene);
+    hotBarMat.diffuseTexture.hasAlpha = true;
+    hotBarMat.useAlphaFromDiffuseTexture = true;
+    hotBarMat.freeze();
+
+    const hotBar = MeshBuilder.CreatePlane(
+        'hotbar',
+        {
+            height: 0.1,
+            width: 0.9
+        },
+        scene
+    );
+    hotBar.position = new Vector3(0, -0.5, 0.8);
+    hotBar.renderingGroupId = 2;
+    hotBar.parent = scene.activeCamera;
+    hotBar.alwaysSelectAsActiveMesh = true;
+    hotBar.material = hotBarMat;
+    rendering.addMeshToScene(hotBar);
+
+    // loadImage('gui/hotbar_bg').then(hotbarImg => {
+    //     const bbEngine = scene.getEngine();
+    //     bbEngine.getRenderingCanvas();
+    // });
 }

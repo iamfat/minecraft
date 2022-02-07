@@ -1,10 +1,7 @@
-import { Engine } from 'noa-engine';
+import Engine from '../Engine';
 
-export default function (
-    engine: Engine,
-    options?: { seed?: number; size?: number; height?: number; blockIds: { [name: string]: number } }
-) {
-    const { size, height, seed, blockIds } = { size: 128, height: 64, blockIds: {}, ...options };
+export default function (engine: Engine, options?: { seed?: number; size?: number; height?: number }) {
+    const { size, height, seed } = { size: 128, height: 64, ...options };
     const world = {
         tiles: [] as number[],
         getBlockId(x: number, y: number, z: number) {
@@ -26,21 +23,25 @@ export default function (
         }
     });
 
+    const blocks = engine.blocks;
+    const bedrockId = blocks.id('bedrock')!;
+    const waterId = blocks.id('water')!;
+
     const bedRockHeight = 30;
     function getBlockId(x: number, y: number, z: number) {
         let id = world.getBlockId(x, y, z);
         if (id !== undefined) {
             if (y == 0) {
-                id = blockIds.bedrock || 0;
+                id = bedrockId;
             }
         }
 
         if (x < 0 || z < 0 || x >= size || z >= size) {
             id = 0;
             if (y <= bedRockHeight - 2) {
-                id = blockIds.bedrock || 0;
+                id = bedrockId;
             } else if (y <= bedRockHeight) {
-                id = blockIds.water || 0;
+                id = waterId;
             }
         }
 

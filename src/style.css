@@ -13,3 +13,24 @@ body {
   width: 100%;
   height: 100%;
 }
+
+#hotbar {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  width: 184px;
+  height: 24px;
+}
+
+#hotbar img.bg {
+  width: 182px;
+  margin: 1px;
+}
+
+#hotbar img.selection {
+  position: absolute;
+  left: 0;
+  top: 0;
+}

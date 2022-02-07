@@ -1,6 +1,12 @@
-import { Engine } from 'noa-engine';
+import { Color3, DynamicTexture, Mesh, MeshBuilder, Scene, Texture, Vector3 } from '@babylonjs/core';
+import Engine from '../Engine';
+import setupWater from './blocks/Water';
 
 const blockIds: { [id: string]: number } = {};
+
+export type Blocks = {
+    id: (name: string) => number | undefined;
+};
 
 export default function (engine: Engine) {
     const { registry } = engine;
@@ -38,28 +44,19 @@ export default function (engine: Engine) {
         material: ['grass', 'dirt', 'grass_dirt']
     });
 
-    registry.registerBlock(2, {
+    blockIds.stone = registry.registerBlock(2, {
         material: 'stone'
     });
 
-    registry.registerBlock(3, {
+    blockIds.dirt = registry.registerBlock(3, {
         material: 'dirt'
     });
 
-    registry.registerBlock(4, {
+    blockIds['wood'] = registry.registerBlock(4, {
         material: 'wood'
     });
 
-    blockIds.water = registry.registerBlock(7, {
-        material: 'water',
-        opaque: false,
-        solid: false,
-        fluid: true,
-        fluidDensity: 1,
-        viscosity: 0.5
-    });
-
-    registry.registerBlock(9, {
+    blockIds.stock = registry.registerBlock(9, {
         material: 'rock'
     });
 
@@ -67,11 +64,11 @@ export default function (engine: Engine) {
         material: 'bedrock'
     });
 
-    registry.registerBlock(11, {
+    blockIds.sand = registry.registerBlock(11, {
         material: 'sand'
     });
 
-    registry.registerBlock(12, {
+    blockIds.gravel = registry.registerBlock(12, {
         material: 'gravel'
     });
 
@@ -79,12 +76,12 @@ export default function (engine: Engine) {
         material: ['tree_top', 'tree_top', 'tree_side']
     });
 
-    registry.registerBlock(14, {
+    blockIds.leaf = registry.registerBlock(14, {
         material: 'leaves_opaque',
         opaque: false
     });
 
-    registry.registerBlock(17, {
+    blockIds.lava = registry.registerBlock(17, {
         material: 'lava',
         solid: false,
         fluid: true,
@@ -92,36 +89,38 @@ export default function (engine: Engine) {
         viscosity: 0.5
     });
 
-    registry.registerBlock(18, {
+    blockIds['rock-gold'] = registry.registerBlock(18, {
         material: 'rock_gold'
     });
 
-    registry.registerBlock(19, {
+    blockIds['rock-bronze'] = registry.registerBlock(19, {
         material: 'rock_bronze'
     });
 
-    registry.registerBlock(20, {
+    blockIds['rock-coal'] = registry.registerBlock(20, {
         material: 'rock_coal'
     });
 
-    registry.registerBlock(21, {
+    blockIds['gold'] = registry.registerBlock(21, {
         material: 'gold'
     });
 
-    registry.registerBlock(22, {
-        material: 'sponge'
-    });
-
-    registry.registerBlock(23, {
+    blockIds['glass'] = registry.registerBlock(23, {
         material: 'glass',
         opaque: false
     });
 
-    registry.registerBlock(40, {
+    blockIds['sponge'] = blockIds.sponge = registry.registerBlock(22, {
+        material: 'sponge'
+    });
+
+    blockIds['empty-sponge'] = registry.registerBlock(40, {
         material: 'empty_sponge',
         opaque: false,
         solid: false
     });
+
+    setupWater(engine, blockIds);
 
     return {
         id(name: string) {

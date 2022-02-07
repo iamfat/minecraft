@@ -1,12 +1,21 @@
-import { Texture, MeshBuilder, Vector3, Color3, StandardMaterial, Vector4, Axis, Space, Scene } from '@babylonjs/core';
-import { Engine } from 'noa-engine';
+import { Texture, MeshBuilder, Vector3, Color3, StandardMaterial, Vector4, Scene } from '@babylonjs/core';
+import Engine from '../Engine';
+// import { loadImage, makeImageMaterial, makeBox } from '../lib/Util';
 
 export default function (engine: Engine) {
-    const { playerEntity, entities, rendering, camera } = engine;
+    const { playerEntity: steveId, entities, rendering, camera } = engine;
 
     const scene: Scene = rendering.getScene();
 
-    const { height } = entities.getPositionData(playerEntity)!;
+    const { height } = entities.getPositionData(steveId)!;
+
+    // const img = await loadImage('entity/steve.png')
+
+    // const torsoMat = makeImageMaterial('steve.torso', img, { position: [16, 16], size: [24, 12] }, scene);
+    // const leftEyeMat = makeImageMaterial('slime.leftEye', img, { position: [32, 0], size: [8, 4] }, scene);
+    // const rightEyeMat = makeImageMaterial('slime.rightEye', img, { position: [32, 2], size: [8, 4] }, scene);
+    // const mouthMat = makeImageMaterial('slime.mouth', img, { position: [32, 8], size: [4, 2] }, scene);
+    // const bodyMat = makeImageMaterial('slime.body', img, { position: [0, 0], size: [32, 16], alpha: 0.7 }, scene);
 
     // add a mesh to represent the player, and scale it, etc.
     const faceUV = new Array(6).fill(0).map((_, i) => {
@@ -15,7 +24,7 @@ export default function (engine: Engine) {
 
     const torsoMat = new StandardMaterial('steve.torso', scene);
     const torsoTexture = new Texture(
-        '/assets/textures2/block/stevetorso.png',
+        '/assets/textures/block/stevetorso.png',
         scene,
         true,
         false,
@@ -37,7 +46,7 @@ export default function (engine: Engine) {
 
     const headMat = new StandardMaterial('steve.head', scene);
     const headTexture = new Texture(
-        '/assets/textures2/block/stevehead.png',
+        '/assets/textures/block/stevehead.png',
         scene,
         true,
         false,
@@ -67,7 +76,7 @@ export default function (engine: Engine) {
 
     const armMat = new StandardMaterial('steve.arm', scene);
     const armTexture = new Texture(
-        '/assets/textures2/block/stevearm.png',
+        '/assets/textures/block/stevearm.png',
         scene,
         true,
         false,
@@ -103,7 +112,7 @@ export default function (engine: Engine) {
 
     const legMat = new StandardMaterial('steve.leg', scene);
     const legTexture = new Texture(
-        '/assets/textures2/block/steveleg.png',
+        '/assets/textures/block/steveleg.png',
         scene,
         true,
         false,
@@ -152,7 +161,7 @@ export default function (engine: Engine) {
 
     [head, leftArm, rightArm, leftLeg, rightLeg].map((it) => rendering.addMeshToScene(it));
 
-    entities.addComponentAgain(playerEntity, entities.names.mesh, {
+    entities.addComponentAgain(steveId, entities.names.mesh, {
         mesh: torso,
         offset: [0, height / 2, 0],
         parts: {
@@ -164,14 +173,28 @@ export default function (engine: Engine) {
         }
     });
 
-    const shadow = (entities as any).getState(playerEntity, entities.names.shadow)._mesh;
+    const movement = entities.getMovement(steveId);
+    entities.addComponentAgain(steveId, entities.names.collideTerrain, {
+        callback: (impulse: number[]) => {
+            if (movement.running && (impulse[0] || impulse[2])) {
+                engine.inputs.state.jump = true;
+                // movement.jumping = true;
+                engine.once('tick', () => (engine.inputs.state.jump = false));
+            }
+        }
+    });
+
+    const body = entities.getPhysicsBody(steveId)!;
+    // body.gravityMultiplier = 2;
+
+    const shadow = (entities as any).getState(steveId, entities.names.shadow)._mesh;
 
     let runningTick = 0;
     engine.on('tick', () => {
         torso.rotation.y = camera.heading;
         head.rotation.x = -camera.pitch;
 
-        const movement = entities.getMovement(playerEntity);
+        const movement = entities.getMovement(steveId);
         if (movement.running || movement.jumping) {
             runningTick += 0.3;
 
@@ -197,4 +220,12 @@ export default function (engine: Engine) {
             [torso, leftArm, rightArm, leftLeg, rightLeg, shadow].map((it) => (it.isVisible = true));
         }
     });
+
+    return {
+        blockInHand: 0
+    } as Steve;
 }
+
+export type Steve = {
+    blockInHand: number;
+};

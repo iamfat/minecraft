@@ -1,4 +1,4 @@
-import { Engine } from 'noa-engine';
+import Engine from '../Engine';
 import { Howl } from 'howler';
 
 type SoundOptions = {
@@ -235,11 +235,11 @@ const blockSoundMap = [
     }
 ];
 
-class SoundComponent {
+export class Sounds {
     private howls: { [name: string]: Howl } = {};
     private options: SoundOptions = {};
 
-    constructor(engine: Engine, options?: SoundOptions) {
+    constructor(options?: SoundOptions) {
         this.options = { basePath: 'assets/sounds', soundOn: true, musicOn: false, ...options };
 
         const { basePath } = this.options;
@@ -298,7 +298,7 @@ class SoundComponent {
 }
 
 export default function (engine: Engine, options?: SoundOptions) {
-    const component = new SoundComponent(engine, options);
-    component.startMusic();
-    return component;
+    const sounds = new Sounds(options);
+    sounds.startMusic();
+    return sounds;
 }
